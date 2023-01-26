@@ -15,6 +15,7 @@
   "extends": [
     "plugin:react/recommended",
     "plugin:jest/recommended",
+    "plugin:cypress/recommended",
     "airbnb",
     "airbnb-typescript"
   ],
