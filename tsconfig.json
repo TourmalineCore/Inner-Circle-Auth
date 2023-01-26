@@ -8,6 +8,12 @@
       "dom.iterable",
       "esnext"
     ],
+    "types": [
+      "cypress", 
+      "@testing-library/cypress", 
+      "jest", 
+      "@types/node"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -25,5 +31,11 @@
   "include": [
     "**/*.d.ts",
     "src",
+    "cypress",
+    "cypress.config.js",
+    "helpers",
+    "jest.config.js",
+    "src/mocks",
+    "mockServiceWorker.js"
   ]
 }
