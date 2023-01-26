@@ -10,6 +10,13 @@ import ResetPage from './features/reset/ResetPage';
 import CreatePasswordPage from './features/create/CreatePasswordPage';
 import ChangePasswordPage from './features/change/ChangePasswordPage';
 
+import { worker } from './mocks/browser';
+import { ENV_KEY } from './common/config/config';
+
+if (ENV_KEY === 'test') {
+  worker.start();
+}
+
 export default function App() {
   return (
     <BrowserRouter>
