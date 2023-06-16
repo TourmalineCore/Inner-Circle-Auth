@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - develop
-  pull_request:
+      - master
+      - ci/#863gxmf5j-prepare-to-prod
 
 env:
   GITHUB_REGISTRY: ghcr.io
@@ -22,11 +23,14 @@ jobs:
           docker build -t $GITHUB_REGISTRY/tourmalinecore/inner-circle/auth-ui:latest -t $GITHUB_REGISTRY/tourmalinecore/inner-circle/auth-ui:${{ github.sha }} .
           docker push $GITHUB_REGISTRY/tourmalinecore/inner-circle/auth-ui:latest
           docker push $GITHUB_REGISTRY/tourmalinecore/inner-circle/auth-ui:${{ github.sha }}
-  deploy-to-dev-k8s:
+
+  deploy-to-prod-k8s:
     needs: build-image
-    name: Deploy service to k8s for development environment  
-    if: github.event_name == 'push'
+    name: Deploy service to k8s for production environment  
+    if: github.ref_name == 'ci/#863gxmf5j-prepare-to-prod'
     runs-on: ubuntu-22.04
+    environment: prod
+
     steps:
       - name: checkout
         uses: actions/checkout@v1
@@ -36,12 +40,16 @@ jobs:
           exec: |
             RELEASE_NAME=auth-ui
             helm repo add bitnami https://charts.bitnami.com/bitnami
-            helm upgrade --install --namespace dev-inner-circle --create-namespace --values ./ci/values-custom.yaml \
+            helm upgrade --install --namespace prod-inner-circle --create-namespace --values ./ci/values-custom.yaml \
             --set "image.tag=${{ github.sha }}" \
             --set "ingress.enabled=true" \
-            --set "ingress.hostname=${{ secrets.DEV_HOST }}" \
-            --set "extraConfigMapEnvVars.API_ROOT=${{ secrets.DEV_API_ROOT }}" \
-            --set "extraConfigMapEnvVars.ENV_KEY=${{ secrets.DEV_ENV_KEY }}" \
+            --set "ingress.hostname=${{ vars.HOST }}" \
+            --set "extraConfigMapEnvVars.API_ROOT=${{ vars.API_ROOT }}" \
+            --set "extraConfigMapEnvVars.ENV_KEY=${{ vars.ENV_KEY }}" \
+            --set "resources.limits.cpu=${{ vars.APP_CPU_LIMIT }}" \
+            --set "resources.limits.memory=${{ vars.APP_MEMORY_LIMIT }}" \
+            --set "resources.requests.cpu=${{ vars.APP_CPU_REQUESTS }}" \
+            --set "resources.requests.memory=${{ vars.APP_MEMORY_REQUESTS }}" \
             "${RELEASE_NAME}" \
             bitnami/nginx
           kubeconfig: "${{ secrets.DEV_KUBECONFIG }}"
